@@ -17,21 +17,23 @@ enum DemoData {
         guard existing == 0 else { return }
 
         let calendar = Calendar.current
-        func day(_ offset: Int) -> Date {
-            calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: .now)!)
+        func day(_ offset: Int, _ hour: Int = 18) -> Date {
+            let start = calendar.startOfDay(for: calendar.date(byAdding: .day, value: offset, to: .now)!)
+            return calendar.date(byAdding: .hour, value: hour, to: start)!
         }
         func ago(minutes: Int) -> Date {
             Date.now.addingTimeInterval(TimeInterval(-minutes * 60))
         }
 
         let samples: [(TodoKind, String, String, Double?, Date?, Bool, Int)] = [
-            (.extended, "Steuererklärung abgeben", "Belege im Ordner sammeln\nhttps://www.elster.de", 1, day(2), false, 5),
-            (.express, "Zahnarzttermin vereinbaren", "", 1.75, day(1), false, 12),
+            (.extended, "Steuererklärung abgeben", "Belege im Ordner sammeln\nhttps://www.elster.de", 1, day(2, 23), false, 5),
+            (.express, "Zahnarzttermin vereinbaren", "", 1.75, day(1, 10), false, 12),
             (.extended, "Urlaub Gardasee planen", "Unterkünfte vergleichen, Fähre checken\nhttps://www.booking.com", 2.25, day(14), false, 30),
-            (.express, "Reifenwechsel Auto", "", 3, day(6), false, 45),
+            (.express, "Reifenwechsel Auto", "", 3, day(6, 9), false, 45),
             (.express, "Geschenk für Mama", "", nil, day(9), false, 60),
             (.extended, "Rezept Lasagne ausprobieren", "Video aus dem Chat gespeichert", 4.5, nil, false, 90),
-            (.express, "Pakete zur Post bringen", "", 2, day(-1), false, 120),
+            (.express, "Pakete zur Post bringen", "", 2, day(-1, 17), false, 120),
+            (.express, "Pfand wegbringen", "", 3.5, Date.now.addingTimeInterval(-2 * 3600), false, 150),
             (.express, "Wohnung kündigen", "", 1, nil, true, 200),
             (.express, "Fahrrad aufpumpen", "", 5, nil, true, 300),
         ]

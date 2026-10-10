@@ -24,13 +24,18 @@ enum TodoSort: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Offene Todos in der gewählten Reihenfolge, erledigte immer darunter.
-    func arrange(_ todos: [Todo]) -> [Todo] {
-        let open = todos.filter { !$0.isDone }.sorted(by: areInOrder)
+    /// Optional fällige Todos zuerst (am längsten fällig oben), dann offene in der gewählten Reihenfolge,
+    /// erledigte immer darunter.
+    func arrange(_ todos: [Todo], now: Date = .now, overdueFirst: Bool = false) -> [Todo] {
+        let open = todos.filter { !$0.isDone }
+        let overdue = overdueFirst
+            ? open.filter { DueDate.isOverdue($0, now: now) }.sorted { $0.dueDate! < $1.dueDate! }
+            : []
+        let rest = open.filter { !overdueFirst || !DueDate.isOverdue($0, now: now) }.sorted(by: areInOrder)
         let done = todos.filter(\.isDone).sorted {
             ($0.completedAt ?? $0.createdAt) > ($1.completedAt ?? $1.createdAt)
         }
-        return open + done
+        return overdue + rest + done
     }
 
     private func areInOrder(_ a: Todo, _ b: Todo) -> Bool {

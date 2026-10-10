@@ -57,9 +57,16 @@ und hört auf Siri.
 
 - **Suche** über Titel und Details.
 - **Sortierung:** Neueste · Älteste · Priorität 1 zuerst · Priorität 5 zuerst · Bevorstehende (nach Fälligkeitsdatum).
-- **Erledigt bis:** optionales Datum. Überfällige Todos werden rot markiert.
+- **Erledigt bis:** optionales Datum mit Uhrzeit.
+- **Fällig = rot und oben:** Sobald der Zeitpunkt erreicht ist, wird das Datum rot und die Todo rutscht über alle anderen, die am längsten fällige zuerst. Abschaltbar in den Einstellungen.
 - **Abhaken** per Kreis. Erledigte bleiben sichtbar, ausgegraut, immer unten.
 - **Wischen** löscht, **Tippen** öffnet den Editor.
+
+### Mitteilungen
+
+- Zur Fälligkeit kommt eine **Mitteilung** mit Titel und Details, auch wenn die App geschlossen ist.
+- Erledigt, gelöscht oder verschoben? Die Mitteilung wird automatisch abgesagt oder neu geplant.
+- Alles lokal über iOS, ohne Server. Die Erlaubnis fragt die App beim ersten Datum.
 
 ### Medien
 
@@ -103,6 +110,7 @@ Siri versteht die App auch als **To-Do-Master**, **To Do Master** und **MasterTo
 - Todos liegen in **SwiftData** im App-Container.
 - Fotos und Videos liegen als Dateien in `Application Support/Media`, nicht in der Datenbank.
 - Für Fotos und Videos nutzt die App den System-Picker. Sie bekommt nur die Medien, die du auswählst, und keinen Zugriff auf die ganze Mediathek.
+- Mitteilungen sind lokal geplant. Es gibt keine Push-Server.
 
 ---
 
@@ -182,7 +190,9 @@ flowchart LR
 | `TodoEditorView.swift` | Express- und Extended-Editor |
 | `PrioritySlider.swift` | Regler 1–5 in Viertelschritten plus X |
 | `Todo.swift` | SwiftData-Modelle `Todo` und `MediaAttachment` |
-| `TodoSort.swift` | Sortierung, Erledigte immer unten |
+| `TodoSort.swift` | Sortierung, Fällige oben, Erledigte immer unten |
+| `NotificationScheduler.swift` | Mitteilungen zur Fälligkeit planen und abgleichen |
+| `DueDate.swift` | Fälligkeit, Uhrzeit-Vorschlag, „ist fällig“ |
 | `MediaStore.swift` · `MediaPicking.swift` · `MediaViewer.swift` | Medien speichern, importieren, anzeigen |
 | `AddTodoIntent.swift` | Siri-Intent und Sprachbefehle |
 | `TodoStore.swift` | Gemeinsamer Container für App und Siri |

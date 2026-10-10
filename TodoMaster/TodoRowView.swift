@@ -7,11 +7,11 @@ import SwiftUI
 
 struct TodoRowView: View {
     let todo: Todo
+    let now: Date
     let onToggle: () -> Void
 
     private var isOverdue: Bool {
-        guard let dueDate = todo.dueDate, !todo.isDone else { return false }
-        return Calendar.current.startOfDay(for: dueDate) < Calendar.current.startOfDay(for: .now)
+        DueDate.isOverdue(todo, now: now)
     }
 
     var body: some View {
@@ -63,19 +63,29 @@ struct TodoRowView: View {
                         .foregroundStyle(PriorityLevel.color(for: level))
                 }
                 if let dueDate = todo.dueDate {
-                    Label(dueDate.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
-                        .font(.caption)
-                        .foregroundStyle(isOverdue ? Color.red : Color.secondary)
+                    HStack(spacing: 3) {
+                        Image(systemName: isOverdue ? "exclamationmark.circle.fill" : "calendar")
+                        Text(dueDate.formatted(date: .abbreviated, time: .shortened))
+                    }
+                    .font(.caption.weight(isOverdue ? .semibold : .regular))
+                    .foregroundStyle(isOverdue ? Color.red : Color.secondary)
+                    .accessibilityLabel(isOverdue ? "Fällig seit \(dueDate.formatted())" : "Fällig \(dueDate.formatted())")
                 }
                 if imageCount > 0 {
-                    Label("\(imageCount)", systemImage: "photo")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 3) {
+                        Image(systemName: "photo")
+                        Text("\(imageCount)")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
                 if videoCount > 0 {
-                    Label("\(videoCount)", systemImage: "video")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 3) {
+                        Image(systemName: "video")
+                        Text("\(videoCount)")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 }
             }
         }

@@ -173,18 +173,29 @@ struct TodoEditorView: View {
     }
 
     private var dueDateSection: some View {
-        Section("Erledigt bis") {
-            Toggle("Datum festlegen", isOn: Binding(
+        Section {
+            Toggle("Datum und Uhrzeit festlegen", isOn: Binding(
                 get: { dueDate != nil },
-                set: { dueDate = $0 ? (dueDate ?? Calendar.current.startOfDay(for: .now)) : nil }
+                set: { isOn in
+                    dueDate = isOn ? (dueDate ?? DueDate.nextFullHour()) : nil
+                    if isOn {
+                        Task { await NotificationScheduler.requestAuthorizationIfNeeded() }
+                    }
+                }
             ))
             if let dueDate {
                 DatePicker(
-                    "Datum",
+                    "Fällig",
                     selection: Binding(get: { dueDate }, set: { self.dueDate = $0 }),
-                    displayedComponents: .date
+                    displayedComponents: [.date, .hourAndMinute]
                 )
                 .datePickerStyle(.graphical)
+            }
+        } header: {
+            Text("Erledigt bis")
+        } footer: {
+            if dueDate != nil {
+                Text("Zur Fälligkeit kommt eine Mitteilung.")
             }
         }
     }
@@ -247,7 +258,7 @@ struct TodoEditorView: View {
         target.title = trimmedTitle
         target.details = kind == .extended ? details.trimmingCharacters(in: .whitespacesAndNewlines) : ""
         target.priority = priority
-        target.dueDate = dueDate.map { Calendar.current.startOfDay(for: $0) }
+        target.dueDate = dueDate.map(DueDate.truncatedToMinute)
 
         let removedNames = Set(removedMedia.map(\.fileName))
         for attachment in target.attachments where removedNames.contains(attachment.fileName) {
@@ -266,6 +277,7 @@ struct TodoEditorView: View {
         }
 
         try? modelContext.save()
+        NotificationScheduler.sync(in: modelContext)
         dismiss()
     }
 }

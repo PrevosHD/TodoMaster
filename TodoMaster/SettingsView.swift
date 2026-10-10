@@ -7,11 +7,19 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("appAppearance") private var appearanceRaw = "system"
+    @AppStorage("overdueFirst") private var overdueFirst = true
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    Toggle("Fällige Todos oben", isOn: $overdueFirst)
+                } header: {
+                    Text("Liste")
+                } footer: {
+                    Text("Fällige Todos stehen rot über allen anderen, unabhängig von der Sortierung.")
+                }
                 Section("Erscheinungsbild") {
                     Picker("Modus", selection: $appearanceRaw) {
                         Text("System").tag("system")

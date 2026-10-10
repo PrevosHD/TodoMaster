@@ -25,6 +25,7 @@ struct TodoListView: View {
     @Query private var todos: [Todo]
 
     @AppStorage("todoSort") private var sortRaw = TodoSort.newest.rawValue
+    @AppStorage("overdueFirst") private var overdueFirst = true
     @State private var priorityFilter: Int?
     @State private var searchText = ""
     @State private var activeSheet: ActiveSheet?
@@ -33,7 +34,7 @@ struct TodoListView: View {
         TodoSort(rawValue: sortRaw) ?? .newest
     }
 
-    private var visibleTodos: [Todo] {
+    private func visibleTodos(now: Date) -> [Todo] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         let filtered = todos.filter { todo in
             if let priorityFilter, todo.priorityLevel != priorityFilter { return false }
@@ -41,7 +42,7 @@ struct TodoListView: View {
             if todo.title.localizedStandardContains(query) { return true }
             return todo.kind == .extended && todo.details.localizedStandardContains(query)
         }
-        return sort.arrange(filtered)
+        return sort.arrange(filtered, now: now, overdueFirst: overdueFirst)
     }
 
     var body: some View {
@@ -165,9 +166,16 @@ struct TodoListView: View {
         .accessibilityLabel("Neue Todo")
     }
 
-    @ViewBuilder
+    /// Jede Minute neu, damit eine Todo zum Fälligkeitszeitpunkt rot wird und nach oben rutscht.
     private var list: some View {
-        let items = visibleTodos
+        TimelineView(.everyMinute) { timeline in
+            listContent(now: timeline.date)
+        }
+    }
+
+    @ViewBuilder
+    private func listContent(now: Date) -> some View {
+        let items = visibleTodos(now: now)
         if items.isEmpty {
             ContentUnavailableView {
                 Label(todos.isEmpty ? "Noch keine Todos" : "Nichts gefunden", systemImage: "checklist")
@@ -178,7 +186,7 @@ struct TodoListView: View {
         } else {
             List {
                 ForEach(items) { todo in
-                    TodoRowView(todo: todo, onToggle: { toggle(todo) })
+                    TodoRowView(todo: todo, now: now, onToggle: { toggle(todo) })
                         .contentShape(Rectangle())
                         .onTapGesture { activeSheet = .edit(todo) }
                         .listRowSeparatorTint(Color.secondary.opacity(0.25))
@@ -201,11 +209,13 @@ struct TodoListView: View {
         todo.isDone.toggle()
         todo.completedAt = todo.isDone ? .now : nil
         try? modelContext.save()
+        NotificationScheduler.sync(in: modelContext)
     }
 
     private func delete(_ todo: Todo) {
         TodoStore.delete(todo, in: modelContext)
         try? modelContext.save()
+        NotificationScheduler.sync(in: modelContext)
     }
 }
 

@@ -12,7 +12,7 @@ enum AppBuildInfo {
     static let day = 10
 
     /// Same-day revision. The first change of a day is 1, the next is 2, and so on.
-    static let revision = 5
+    static let revision = 6
 
     static var versionFooter: String {
         "v\(year).\(month).\(day)-\(revision)"
